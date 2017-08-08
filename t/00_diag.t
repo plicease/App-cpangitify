@@ -1,7 +1,7 @@
-use Test2::V0 -no_srand => 1;
+use strict;
+use warnings;
 use Config;
-
-eval q{ require Test::More };
+use Test::More tests => 1;
 
 # This .t file is generated.
 # make changes instead to dist.ini
@@ -25,9 +25,8 @@ $modules{$_} = $_ for qw(
   PerlX::Maybe
   PerlX::Maybe::XS
   Sort::Versions
-  Test2::API
   Test2::Plugin::FauxHomeDir
-  Test2::V0
+  Test::More
   URI
   URI::file
 );
@@ -79,7 +78,7 @@ if(@keys > 0)
 
 diag sprintf $format, 'perl ', $];
 
-foreach my $module (sort @modules)
+foreach my $module (@modules)
 {
   if(eval qq{ require $module; 1 })
   {
@@ -101,4 +100,3 @@ if($post_diag)
 
 spacer;
 
-done_testing;

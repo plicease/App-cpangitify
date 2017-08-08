@@ -1,13 +1,15 @@
 use lib 't/lib';
+use strict;
+use warnings;
 use Test2::Plugin::FauxHomeDir;
-use Test2::Plugin::HTTPTinyFile;
-use Test2::V0 -no_srand => 1;
-use App::cpangitify;
 use File::Glob qw( bsd_glob );
+use Test::More tests => 14;
+use App::cpangitify;
 use Capture::Tiny qw( capture_merged );
 use File::chdir;
 use URI::file;
 use Path::Class qw( file dir );
+use Test::HTTPTinyFile;
 use Git::Wrapper;
 
 $App::cpangitify::_run_cb = sub {
@@ -51,15 +53,9 @@ my $git = Git::Wrapper->new($home->subdir('Foo-Bar')->stringify);
 
 my @commits = $git->log;
 
-is(
-  \@commits,
-  array {
-    item object { call message => match(qr{^version 0\.03$}) };
-    item object { call message => match(qr{^version 0\.02$}) };
-    item object { call message => match(qr{^version 0\.01$}) };
-  },
-  'commit messages',
-);
+like $commits[0]->message, qr{^version 0\.03$}, "commits.0.message = version 0.03";
+like $commits[1]->message, qr{^version 0\.02$}, "commits.1.message = version 0.02";
+like $commits[2]->message, qr{^version 0\.01$}, "commits.2.message = version 0.01";
 
 foreach my $commit (@commits)
 {
@@ -70,23 +66,21 @@ foreach my $commit (@commits)
 # 0.03
 my @yes = map { [ split /\// ] } qw( lib/Foo/Bar.pm lib/Foo/Bar/Baz.pm t/use.t );
 my @no  = map { [ split /\// ] } qw( t/stuffit.t );
-mycheck(0.03);
+check(0.03);
 
 # 0.02
 @yes = map { [ split /\// ] } qw( lib/Foo/Bar.pm lib/Foo/Bar/Baz.pm t/use.t t/stuffit.t );
 @no  = map { [ split /\// ] } qw( );
-mycheck(0.02);
+check(0.02);
 
 # 0.01
 @yes = map { [ split /\// ] } qw( lib/Foo/Bar.pm t/use.t );
 @no  = map { [ split /\// ] } qw( t/stuffit.t lib/Foo/Bar/Baz.pm );
-mycheck(0.01);
+check(0.01);
 
 pass 'okay';
 
-done_testing;
-
-sub mycheck
+sub check
 {
   my $tag = shift;
   $git->checkout($tag);
@@ -104,4 +98,3 @@ sub mycheck
     }
   };
 }
-

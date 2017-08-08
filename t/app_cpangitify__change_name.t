@@ -1,13 +1,15 @@
 use lib 't/lib';
-use Test2::V0 -no_srand => 1;
+use strict;
+use warnings;
 use Test2::Plugin::FauxHomeDir;
-use Test2::Plugin::HTTPTinyFile;
 use File::Glob qw( bsd_glob );
+use Test::More tests => 5;
 use App::cpangitify;
 use Capture::Tiny qw( capture_merged );
 use File::chdir;
 use URI::file;
 use Path::Class qw( file dir );
+use Test::HTTPTinyFile;
 
 $App::cpangitify::_run_cb = sub {
   my($git, @command) = @_;
@@ -48,15 +50,13 @@ my $git = Git::Wrapper->new($home->subdir('Foo-Bar-Baz')->stringify);
 
 my @commits = $git->log;
 
-is(
-  \@commits,
-  array {
-    item object { call message => match(qr{^version 0\.04$}) };
-    item object { call message => match(qr{^version 0\.03$}) };
-    item object { call message => match(qr{^version 0\.02$}) };
-    item object { call message => match(qr{^version 0\.01$}) };
-  },
-  'commit messages',
-);
+like eval { $commits[0]->message }, qr{^version 0\.04$}, "commits.0.message = version 0.04";
+diag $@ if $@;
+like eval { $commits[1]->message }, qr{^version 0\.03$}, "commits.1.message = version 0.03";
+diag $@ if $@;
+like eval { $commits[2]->message }, qr{^version 0\.02$}, "commits.2.message = version 0.02";
+diag $@ if $@;
+like eval { $commits[3]->message }, qr{^version 0\.01$}, "commits.3.message = version 0.01";
+diag $@ if $@;
 
-done_testing;
+
